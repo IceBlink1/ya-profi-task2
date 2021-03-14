@@ -20,6 +20,10 @@ def notes(request):
     if request.method == 'GET':
         notes = Note.objects.all()
 
+        for i in range(len(notes)):
+            if notes[i].title is None or len(notes[i].title) == 0:
+                notes[i].title = notes[i].content[:MAX_SYMBOLS]
+
         title = request.query_params.get('string', None)
         if title is not None:
             notes_title = [notes.filter(title__icontains=title), notes.filter(content__icontains=title)]
@@ -29,9 +33,6 @@ def notes(request):
                     if j not in res:
                         res.append(j)
             notes = res
-        for i in range(len(notes)):
-            if notes[i].title is None or len(notes[i].title) == 0:
-                notes[i].title = notes[i].content[:MAX_SYMBOLS]
 
         note_serializer = NoteSerializer(notes, many=True)
         return JsonResponse(note_serializer.data, safe=False)
@@ -42,7 +43,7 @@ def notes(request):
         note.title = request.data.get('title')
         note.save()
         note_serializer = NoteSerializer(note)
-        return JsonResponse(note_serializer, safe=False)
+        return JsonResponse(note_serializer, safe=False, status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
