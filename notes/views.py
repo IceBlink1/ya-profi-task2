@@ -48,11 +48,12 @@ def notes(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes((permissions.AllowAny,))
 def note_detail(request, pk):
-
     if request.method == 'GET':
         note = Note.objects.all().filter(pk=pk)
         if note is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        if note.title is None or len(note.title) == 0:
+            note.title = note.content[:MAX_SYMBOLS]
         note_serializer = NoteSerializer(note)
         return JsonResponse(note_serializer.data)
 
@@ -83,8 +84,6 @@ class NoteView(ListCreateAPIView):
     class Meta:
         model = Note
         fields = ('content', 'title', 'date', 'user')
-
-
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
